@@ -39,6 +39,11 @@ data/*.json
 data/*.pkl
 data/*.csv
 data/*.faiss
+data/*.pickle
+
+# Gmail OAuth credentials and tokens
+data/gmail_credentials.json
+data/gmail_token.pickle
 
 # Environment variables
 .env

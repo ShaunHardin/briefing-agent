@@ -71,7 +71,7 @@ class NewsletterMemory:
             text = f"{nl['subject']} {nl['body']}"
             embedding = self.get_embedding(text)
             
-            self.index.add(np.array([embedding]))
+            self.index.add(np.array([embedding], dtype=np.float32))
             self.metadata.append({
                 'id': nl['id'],
                 'subject': nl['subject'],
@@ -88,7 +88,7 @@ class NewsletterMemory:
             return []
         
         query_embedding = self.get_embedding(query)
-        distances, indices = self.index.search(np.array([query_embedding]), k)
+        distances, indices = self.index.search(np.array([query_embedding], dtype=np.float32), k)
         
         results = []
         for i, idx in enumerate(indices[0]):
