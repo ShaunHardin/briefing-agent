@@ -40,6 +40,9 @@ class NewsletterMemory:
         else:
             self.index = faiss.IndexFlatL2(self.dimension)
         
+        if self.index is None:
+            self.index = faiss.IndexFlatL2(self.dimension)
+        
         if os.path.exists(self.metadata_file):
             with open(self.metadata_file, 'r') as f:
                 self.metadata = json.load(f)
