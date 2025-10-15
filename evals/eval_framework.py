@@ -63,7 +63,7 @@ class EvalMetrics:
         return min(action_count / len(action_words), 1.0)
     
     @staticmethod
-    def evaluate_synthesis(synthesis: Dict, newsletters: List[Dict], feedback: Dict = None) -> Dict:
+    def evaluate_synthesis(synthesis: Dict, newsletters: List[Dict], feedback: Dict | None = None) -> Dict:
         """
         Run full evaluation on synthesis
         """

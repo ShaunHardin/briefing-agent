@@ -4,6 +4,7 @@ import numpy as np
 import faiss
 from datetime import datetime
 from openai import OpenAI
+from typing import List, Dict, Any
 
 
 def get_openai_client():
@@ -20,7 +21,7 @@ def get_openai_client():
 class NewsletterMemory:
     """Vector store for newsletter embeddings and memory"""
     
-    def __init__(self, storage_path='data'):
+    def __init__(self, storage_path: str = 'data'):
         self.storage_path = storage_path
         self.index_file = os.path.join(storage_path, 'newsletter_index.faiss')
         self.metadata_file = os.path.join(storage_path, 'newsletter_metadata.json')
@@ -28,8 +29,8 @@ class NewsletterMemory:
         
         os.makedirs(storage_path, exist_ok=True)
         
-        self.index = None
-        self.metadata = []
+        self.index: faiss.Index
+        self.metadata: List[Dict[str, Any]] = []
         
         self.load()
     
@@ -38,9 +39,6 @@ class NewsletterMemory:
         if os.path.exists(self.index_file):
             self.index = faiss.read_index(self.index_file)
         else:
-            self.index = faiss.IndexFlatL2(self.dimension)
-        
-        if self.index is None:
             self.index = faiss.IndexFlatL2(self.dimension)
         
         if os.path.exists(self.metadata_file):

@@ -28,7 +28,7 @@ with st.sidebar:
     custom_query = st.text_input(
         "Gmail query",
         placeholder="from:newsletter@example.com",
-        help="Use Gmail search syntax. Leave empty for auto-detection."
+        help="Use Gmail search syntax. Leave empty to search label:newsletter."
     )
     
     st.markdown("---")
@@ -139,7 +139,7 @@ else:
     st.markdown("""
     ### How it works:
     
-    1. **Fetch** - Retrieves newsletters from your Gmail inbox
+    1. **Fetch** - Retrieves newsletters from your Gmail (default: label:newsletter)
     2. **Analyze** - AI synthesizes key insights and trends
     3. **Learn** - Get personalized learning prompts and challenges
     4. **Engage** - Track what resonates with you through feedback

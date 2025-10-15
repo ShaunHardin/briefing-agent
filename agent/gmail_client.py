@@ -104,8 +104,8 @@ def fetch_newsletters(days_back=7, max_results=50, query=None):
         if query:
             full_query = f"{query} {date_query}"
         else:
-            # Default: look for newsletters (common patterns)
-            full_query = f"(from:newsletter OR from:digest OR subject:newsletter OR subject:digest OR label:newsletters) {date_query}"
+            # Default: look for newsletter label
+            full_query = f"label:newsletter {date_query}"
         
         # Fetch messages
         results = service.users().messages().list(
