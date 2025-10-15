@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import os
 from datetime import datetime, timedelta
-from agent.gmail_client import fetch_newsletters
+from agent.gmail_oauth import fetch_newsletters
 from agent.synthesizer import synthesize_newsletters, generate_personalized_prompt
 
 st.set_page_config(

@@ -10,8 +10,9 @@ A personalized AI research companion that reads newsletters from Gmail, synthesi
 ## Recent Changes
 - **October 15, 2025**: 
   - Set up Python environment with all dependencies
-  - Configured Gmail and OpenAI integrations
-  - Built newsletter fetcher with Gmail API
+  - Configured OpenAI integration (Replit AI Integrations)
+  - Migrated to Gmail API with OAuth for full inbox access
+  - Built newsletter fetcher with Gmail OAuth (defaults to label:newsletter)
   - Implemented AI synthesis agent for insight extraction
   - Created Streamlit UI for digest viewing
   - Added FAISS vector store for newsletter memory (placeholder embeddings)
@@ -39,9 +40,11 @@ app.py          - Streamlit UI application
 
 ### Core Components
 
-1. **Gmail Integration** (`agent/gmail_client.py`)
-   - Fetches newsletters using Gmail API with OAuth
-   - Supports custom search queries and auto-detection
+1. **Gmail Integration** (`agent/gmail_oauth.py`)
+   - Fetches newsletters using Gmail API with OAuth 2.0
+   - Full inbox read access (gmail.readonly scope)
+   - Supports custom search queries, defaults to label:newsletter
+   - Auto token refresh for scheduled tasks
    - Extracts and cleans email content
 
 2. **AI Synthesis** (`agent/synthesizer.py`)
@@ -64,7 +67,9 @@ app.py          - Streamlit UI application
    - Newsletter browsing and search
 
 ### Integrations
-- **Gmail**: OAuth connection for email access (read-only permissions)
+- **Gmail**: OAuth 2.0 with desktop credentials for full inbox access
+  - Requires one-time Google Cloud Console setup (see README_GMAIL_SETUP.md)
+  - Token auto-refresh for scheduled deployments
 - **OpenAI**: Replit AI Integrations (no API key needed, billed to credits)
 
 ### Key Features Implemented
