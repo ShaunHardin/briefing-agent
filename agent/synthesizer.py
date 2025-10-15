@@ -90,7 +90,8 @@ Please provide your analysis in the following JSON format:
     
     # Parse response
     try:
-        result = json.loads(response.choices[0].message.content)
+        content = response.choices[0].message.content or "{}"
+        result = json.loads(content)
     except json.JSONDecodeError:
         # Fallback if not valid JSON
         result = {
@@ -146,4 +147,5 @@ Keep it concise (2-3 sentences)."""
         max_tokens=200
     )
     
-    return response.choices[0].message.content.strip()
+    content = response.choices[0].message.content
+    return content.strip() if content else ""
