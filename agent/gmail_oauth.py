@@ -3,7 +3,7 @@ import json
 import pickle
 from datetime import datetime, timedelta
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -16,7 +16,6 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 # Token storage path
 TOKEN_PATH = 'data/gmail_token.pickle'
-CREDENTIALS_PATH = 'data/gmail_credentials.json'
 
 
 def get_gmail_service():
@@ -34,21 +33,42 @@ def get_gmail_service():
             # Refresh expired token
             creds.refresh(Request())
         else:
-            # Check if credentials file exists
-            if not os.path.exists(CREDENTIALS_PATH):
-                raise FileNotFoundError(
-                    f"Gmail OAuth credentials not found at {CREDENTIALS_PATH}. "
-                    "Please download your OAuth 2.0 credentials from Google Cloud Console "
-                    "and save them as 'data/gmail_credentials.json'"
+            # Get credentials from Replit Secrets
+            credentials_json = os.environ.get('GMAIL_CREDENTIALS')
+            
+            if not credentials_json:
+                raise EnvironmentError(
+                    "Gmail OAuth credentials not found in Replit Secrets. "
+                    "Please add GMAIL_CREDENTIALS secret with your OAuth JSON from Google Cloud Console. "
+                    "See README_GMAIL_SETUP.md for instructions."
                 )
             
-            # Run OAuth flow
-            flow = InstalledAppFlow.from_client_secrets_file(
-                CREDENTIALS_PATH, SCOPES)
+            # Parse credentials
+            client_config = json.loads(credentials_json)
             
-            # For Replit, we need to use the out-of-band flow
-            # since we can't use localhost callback
-            creds = flow.run_local_server(port=0)
+            # Run OAuth flow
+            flow = Flow.from_client_config(
+                client_config,
+                scopes=SCOPES,
+                redirect_uri='urn:ietf:wg:oauth:2.0:oob'
+            )
+            
+            # Get authorization URL
+            auth_url, _ = flow.authorization_url(prompt='consent')
+            
+            print("\n" + "="*60)
+            print("GMAIL OAUTH REQUIRED")
+            print("="*60)
+            print(f"\n1. Visit this URL to authorize:\n{auth_url}\n")
+            print("2. After authorization, copy the code")
+            print("3. Paste it in the Streamlit UI when prompted\n")
+            print("="*60 + "\n")
+            
+            # For now, raise an error with instructions
+            # We'll handle this in the Streamlit UI
+            raise RuntimeError(
+                f"OAuth authorization required. Visit: {auth_url}"
+            )
         
         # Save credentials for next run
         os.makedirs(os.path.dirname(TOKEN_PATH), exist_ok=True)
