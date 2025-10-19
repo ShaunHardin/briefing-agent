@@ -1,111 +1,24 @@
-# Newsletter Digest Agent 2.0
+# Briefing Agent Project
 
 ## Overview
-A personalized AI research companion that reads newsletters from Gmail, synthesizes insights, and coaches learning by surfacing trends, generating personalized challenges, and tracking engagement.
+This project was imported from GitHub repository: https://github.com/ShaunHardin/briefing-agent
 
-**Purpose**: Transform newsletter overload into actionable learning insights  
-**Current State**: MVP functional with Gmail integration, AI synthesis, and Streamlit UI  
-**Tech Stack**: Python, Streamlit, OpenAI (via Replit AI Integrations), Gmail API, FAISS
+The repository currently contains only a LICENSE file (MIT License). No application code has been added to the repository yet.
 
-## Recent Changes
-- **October 15, 2025**: 
-  - Set up Python environment with all dependencies
-  - Configured OpenAI integration (Replit AI Integrations)
-  - Migrated to Gmail API with OAuth for full inbox access
-  - Built newsletter fetcher with Gmail OAuth (defaults to label:newsletter)
-  - Implemented AI synthesis agent for insight extraction
-  - Created Streamlit UI for digest viewing
-  - Added FAISS vector store for newsletter memory (placeholder embeddings)
-  - Built basic evaluation framework
-  - Configured workflow and deployed to port 5000
+## Current State
+- **Status**: Empty repository (initial commit only)
+- **License**: MIT License
+- **Created**: October 14, 2025
+
+## Next Steps
+To get started with this project, you'll need to:
+1. Add your application code to the repository
+2. Set up the necessary dependencies and configuration files
+3. Configure the build and run scripts
 
 ## Project Architecture
+Not yet defined - awaiting code implementation.
 
-### Directory Structure
-```
-/agent          - Core agent logic
-  ├── gmail_client.py    - Gmail API integration
-  ├── synthesizer.py     - AI synthesis with OpenAI
-  └── memory.py          - FAISS vector store for newsletter memory
-
-/evals          - Evaluation framework
-  └── eval_framework.py  - Metrics for relevance, completeness, actionability
-
-/data           - Storage for FAISS index and metadata
-  ├── newsletter_index.faiss
-  └── newsletter_metadata.json
-
-app.py          - Streamlit UI application
-```
-
-### Core Components
-
-1. **Gmail Integration** (`agent/gmail_oauth.py`)
-   - Fetches newsletters using Gmail API with OAuth 2.0
-   - Full inbox read access (gmail.readonly scope)
-   - Supports custom search queries, defaults to label:newsletter
-   - Auto token refresh for scheduled tasks
-   - Extracts and cleans email content
-
-2. **AI Synthesis** (`agent/synthesizer.py`)
-   - Uses OpenAI (gpt-4o-mini) via Replit AI Integrations
-   - Generates summaries, insights, trends, and action items
-   - Creates personalized learning prompts
-
-3. **Vector Memory** (`agent/memory.py`)
-   - FAISS-based vector store for newsletter embeddings
-   - Enables semantic search across past newsletters
-   - Note: Currently uses placeholder embeddings (OpenAI embeddings API not supported by AI Integrations)
-
-4. **Evaluation Framework** (`evals/eval_framework.py`)
-   - Measures relevance, completeness, and actionability
-   - Saves evaluation results for continuous improvement
-
-5. **Streamlit UI** (`app.py`)
-   - Web interface for viewing digests
-   - Feedback collection system
-   - Newsletter browsing and search
-
-### Integrations
-- **Gmail**: OAuth 2.0 with desktop credentials for full inbox access
-  - Requires one-time Google Cloud Console setup (see README_GMAIL_SETUP.md)
-  - Token auto-refresh for scheduled deployments
-- **OpenAI**: Replit AI Integrations (no API key needed, billed to credits)
-
-### Key Features Implemented
-- ✅ Newsletter fetching from Gmail
-- ✅ AI-powered insight synthesis
-- ✅ Trend identification
-- ✅ Personalized learning prompts
-- ✅ Basic vector memory with FAISS
-- ✅ Evaluation metrics
-- ✅ User feedback collection
-
-### Planned Enhancements
-- [ ] Proper embeddings (when supported by AI Integrations)
-- [ ] Attention scoring based on user engagement
-- [ ] Insight graph visualization
-- [ ] Advanced evals with Phoenix/DeepEval/TruLens
-- [ ] Privacy controls with PII detection
-- [ ] LangGraph orchestration (if needed for complex workflows)
-
-## User Preferences
-- **Learning Style**: Self-guided with AI coaching
-- **Focus**: Building AI products end-to-end (design, evals, safety, strategy)
-- **Data Source**: Gmail newsletters
-- **Privacy**: Important consideration for future iterations
-
-## How to Use
-
-1. **Fetch Newsletters**: Click "Fetch & Analyze" in the sidebar
-2. **Review Digest**: See AI-generated summary, insights, and trends
-3. **Get Learning Prompts**: Click on insights to generate personalized challenges
-4. **Provide Feedback**: Share what's useful to improve future digests
-
-## Technical Notes
-
-- Server runs on port 5000 (Streamlit with `--server.address=0.0.0.0`)
-- Gmail connection uses Replit Connectors with automatic token refresh
-- OpenAI uses Replit AI Integrations (gpt-4o-mini model)
-- FAISS index stored in `/data` directory
-- Evaluation results saved to `/evals/results.json`
+## Recent Changes
+- October 15, 2025: Repository imported to Replit
+- October 14, 2025: Initial commit with LICENSE file
