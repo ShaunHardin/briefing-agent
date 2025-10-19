@@ -87,6 +87,17 @@ On first run:
 ## Next Steps
 
 Once the connection is working:
-1. Run tests: `pytest evals/test_gmail.py -v`
+1. Run tests: `pytest evals/test_gmail.py -v` (should see 10 passing tests)
 2. Start building the newsletter synthesis features
 3. Create filters for newsletter-specific emails
+
+## Known Edge Cases
+
+The Gmail fetcher handles most common email formats, but be aware of:
+
+- **Large attachments**: Currently ignored; body extraction focuses on text/plain and text/html parts
+- **Non-UTF8 encodings**: Decoded with `errors='ignore'` to prevent crashes, but may lose some characters
+- **Embedded images**: Not extracted; only text content is retrieved
+- **Very large emails**: May hit API size limits; consider pagination if needed
+
+These edge cases will be addressed as needed based on real-world newsletter data.

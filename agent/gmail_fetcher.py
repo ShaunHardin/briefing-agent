@@ -149,25 +149,43 @@ class GmailFetcher:
         return None
     
     def _get_email_body(self, payload: dict) -> str:
-        """Extract email body from payload"""
-        body = ''
+        """
+        Recursively extract email body from payload.
+        Prefers text/plain, falls back to text/html.
+        """
+        def extract_parts(part: dict, prefer_plain: bool = True) -> tuple[str, str]:
+            """
+            Recursively extract text/plain and text/html from parts.
+            Returns: (plain_text, html_text)
+            """
+            plain_text = ''
+            html_text = ''
+            
+            mime_type = part.get('mimeType', '')
+            
+            if 'parts' in part:
+                for subpart in part['parts']:
+                    sub_plain, sub_html = extract_parts(subpart, prefer_plain)
+                    plain_text = plain_text or sub_plain
+                    html_text = html_text or sub_html
+            
+            elif mime_type == 'text/plain' and 'data' in part.get('body', {}):
+                try:
+                    plain_text = base64.urlsafe_b64decode(
+                        part['body']['data']
+                    ).decode('utf-8', errors='ignore')
+                except Exception:
+                    pass
+            
+            elif mime_type == 'text/html' and 'data' in part.get('body', {}):
+                try:
+                    html_text = base64.urlsafe_b64decode(
+                        part['body']['data']
+                    ).decode('utf-8', errors='ignore')
+                except Exception:
+                    pass
+            
+            return plain_text, html_text
         
-        if 'parts' in payload:
-            for part in payload['parts']:
-                if part['mimeType'] == 'text/plain':
-                    if 'data' in part['body']:
-                        body = base64.urlsafe_b64decode(
-                            part['body']['data']
-                        ).decode('utf-8')
-                        break
-                elif part['mimeType'] == 'text/html' and not body:
-                    if 'data' in part['body']:
-                        body = base64.urlsafe_b64decode(
-                            part['body']['data']
-                        ).decode('utf-8')
-        elif 'body' in payload and 'data' in payload['body']:
-            body = base64.urlsafe_b64decode(
-                payload['body']['data']
-            ).decode('utf-8')
-        
-        return body
+        plain, html = extract_parts(payload)
+        return plain or html or ''
