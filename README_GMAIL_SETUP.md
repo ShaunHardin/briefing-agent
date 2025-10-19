@@ -1,79 +1,86 @@
-# 🔐 Gmail OAuth Setup with Replit Secrets
+# 🔐 Gmail Service Account Setup
 
-Your app uses Replit Secrets to securely store Gmail credentials - they'll never be committed to GitHub!
+Your app uses a Google Workspace service account to access Gmail - perfect for automation!
 
-## Quick Setup (5 minutes)
+## Prerequisites
 
-### Step 1: Get Google Cloud Credentials
+✅ You have Google Workspace (not personal Gmail)  
+✅ You are a Workspace admin (or can ask one for help)  
+✅ You have created a service account
 
-1. Go to [console.cloud.google.com](https://console.cloud.google.com/)
-2. Create a new project (or select existing)
-3. Enable **Gmail API**:
-   - APIs & Services → Library
-   - Search "Gmail API" → Enable
+## Quick Setup (10 minutes)
 
-4. Create **OAuth 2.0 Client ID**:
-   - APIs & Services → Credentials
-   - Click "+ CREATE CREDENTIALS" → OAuth client ID
-   - If prompted, configure consent screen:
-     - User type: **External**
-     - App name: "Newsletter Digest Agent"
-     - Add your email to test users
-   - Application type: **Desktop app**
-   - Name it anything (e.g., "Newsletter Digest")
-   - Click **Create**
+### Step 1: Enable Domain-Wide Delegation
 
-5. **Download the JSON file**
-   - After creation, download the credentials JSON
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Select your project
+3. Navigate to **IAM & Admin** → **Service Accounts**
+4. Find your service account: `newsletter-summary@sodium-petal-457318-m6.iam.gserviceaccount.com`
+5. Click on it → **Show Domain-Wide Delegation** → **Enable Domain-Wide Delegation**
+6. Note the **Client ID** (you'll need this next)
 
-### Step 2: Add to Replit Secrets (Secure!)
+### Step 2: Authorize in Workspace Admin
 
-1. **Open Replit Secrets**:
-   - In your Replit workspace, find **Tools** → **Secrets** (or search for "Secrets")
+1. Go to [Google Workspace Admin Console](https://admin.google.com/)
+2. Navigate to **Security** → **API Controls** → **Domain-wide Delegation**
+3. Click **Add new**
+4. Enter:
+   - **Client ID**: (from service account)
+   - **OAuth Scopes**: `https://www.googleapis.com/auth/gmail.readonly`
+5. Click **Authorize**
 
-2. **Add the secret**:
-   - Click "Add new secret"
-   - **Key**: `GMAIL_CREDENTIALS`
-   - **Value**: Open the downloaded JSON file and paste the **entire contents**
-   - Click "Add secret"
+### Step 3: Download Service Account Key
 
-### Step 3: First-Time Authorization
+1. Back in Google Cloud Console → Service Accounts
+2. Click your service account
+3. Go to **Keys** tab
+4. Click **Add Key** → **Create new key**
+5. Choose **JSON** format
+6. Download the key file
 
-1. Click "Fetch & Analyze" in the app
-2. You'll see an authorization URL
-3. Visit the URL and authorize Gmail access
-4. Copy the authorization code
-5. Paste it back in the app
-6. Done! Token saves for future use
+### Step 4: Add to Replit Secrets
 
-## Why This is Secure
+1. Open the downloaded JSON file
+2. In Replit, go to **Tools** → **Secrets**
+3. Add two secrets:
 
-✅ **Secrets never touch GitHub** - Stored separately in Replit  
-✅ **Encrypted at rest** - Replit handles security  
-✅ **Works in deployments** - Automatically available  
-✅ **Token auto-refresh** - No manual intervention after setup
+**Secret 1:**
+- **Key**: `GOOGLE_SERVICE_ACCOUNT_KEY`
+- **Value**: Paste the entire JSON contents
 
-## For Scheduled/Automated Use
+**Secret 2:**
+- **Key**: `GMAIL_USER_EMAIL`
+- **Value**: Your Workspace email (e.g., `you@yourworkspace.com`)
 
-Once you complete the OAuth flow once:
-- Token saves to `data/gmail_token.pickle` (also in .gitignore)
-- Auto-refreshes when expired
-- Works perfectly for scheduled daily runs
-- No user interaction needed
+4. Click "Add secret" for each
+
+### Step 5: Test It!
+
+1. Restart your app
+2. Click "Fetch & Analyze"
+3. Your newsletters should load automatically!
+
+## Why This Works
+
+✅ **No OAuth flow** - Service account authenticates directly  
+✅ **Perfect for automation** - No user interaction needed  
+✅ **Works in deployments** - Scheduled tasks work seamlessly  
+✅ **Secure** - Secrets never touch GitHub  
 
 ## Troubleshooting
 
-**"Unverified app" warning**: 
-- Click "Advanced" → "Go to Newsletter Digest Agent (unsafe)"
-- Normal for personal projects
+**"User email not specified"**:
+- Make sure you added `GMAIL_USER_EMAIL` secret
 
-**Can't find Secrets pane**:
-- Try Tools menu or use Cmd/Ctrl+K and search "secrets"
+**"Insufficient Permission"**:
+- Check domain-wide delegation is enabled
+- Verify the Gmail scope is authorized in Admin Console
+- Confirm you're using the correct Client ID
 
-**Secret not loading**:
-- Make sure key is exactly: `GMAIL_CREDENTIALS`
-- Restart the workflow after adding secret
+**"Access denied"**:
+- Ensure the user email is in your Workspace domain
+- Verify the service account has domain-wide delegation
 
 ---
 
-**Next Step**: Add your `GMAIL_CREDENTIALS` secret, then run the app!
+**Next Step**: Add your secrets and test the app!

@@ -1,10 +1,7 @@
 import os
 import json
-import pickle
 from datetime import datetime, timedelta
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
-from google.auth.transport.requests import Request
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import base64
@@ -14,68 +11,42 @@ from email.utils import parsedate_to_datetime
 # Gmail API scopes for reading messages
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
-# Token storage path
-TOKEN_PATH = 'data/gmail_token.pickle'
 
-
-def get_gmail_service():
-    """Get Gmail API service with OAuth authentication"""
-    creds = None
+def get_gmail_service(user_email=None):
+    """
+    Get Gmail API service with service account authentication
     
-    # Load saved credentials if they exist
-    if os.path.exists(TOKEN_PATH):
-        with open(TOKEN_PATH, 'rb') as token:
-            creds = pickle.load(token)
+    Args:
+        user_email: Email address to impersonate (required for domain-wide delegation)
     
-    # If no valid credentials, get new ones
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            # Refresh expired token
-            creds.refresh(Request())
-        else:
-            # Get credentials from Replit Secrets
-            credentials_json = os.environ.get('GMAIL_CREDENTIALS')
-            
-            if not credentials_json:
-                raise EnvironmentError(
-                    "Gmail OAuth credentials not found in Replit Secrets. "
-                    "Please add GMAIL_CREDENTIALS secret with your OAuth JSON from Google Cloud Console. "
-                    "See README_GMAIL_SETUP.md for instructions."
-                )
-            
-            # Parse credentials
-            client_config = json.loads(credentials_json)
-            
-            # Run OAuth flow
-            flow = Flow.from_client_config(
-                client_config,
-                scopes=SCOPES,
-                redirect_uri='urn:ietf:wg:oauth:2.0:oob'
-            )
-            
-            # Get authorization URL
-            auth_url, _ = flow.authorization_url(prompt='consent')
-            
-            print("\n" + "="*60)
-            print("GMAIL OAUTH REQUIRED")
-            print("="*60)
-            print(f"\n1. Visit this URL to authorize:\n{auth_url}\n")
-            print("2. After authorization, copy the code")
-            print("3. Paste it in the Streamlit UI when prompted\n")
-            print("="*60 + "\n")
-            
-            # For now, raise an error with instructions
-            # We'll handle this in the Streamlit UI
-            raise RuntimeError(
-                f"OAuth authorization required. Visit: {auth_url}"
-            )
-        
-        # Save credentials for next run
-        os.makedirs(os.path.dirname(TOKEN_PATH), exist_ok=True)
-        with open(TOKEN_PATH, 'wb') as token:
-            pickle.dump(creds, token)
+    Returns:
+        Gmail API service
+    """
+    # Get service account credentials from Replit Secrets
+    service_account_info = os.environ.get('GOOGLE_SERVICE_ACCOUNT_KEY')
     
-    return build('gmail', 'v1', credentials=creds)
+    if not service_account_info:
+        raise EnvironmentError(
+            "Service account credentials not found in Replit Secrets. "
+            "Please add GOOGLE_SERVICE_ACCOUNT_KEY secret with your service account JSON. "
+            "See README_GMAIL_SETUP.md for instructions."
+        )
+    
+    # Parse service account JSON
+    service_account_dict = json.loads(service_account_info)
+    
+    # Create credentials
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_dict,
+        scopes=SCOPES
+    )
+    
+    # If user_email provided, delegate to that user
+    if user_email:
+        credentials = credentials.with_subject(user_email)
+    
+    # Build and return Gmail service
+    return build('gmail', 'v1', credentials=credentials)
 
 
 def extract_email_body(payload):
@@ -109,20 +80,31 @@ def clean_text(text):
     return text.strip()
 
 
-def fetch_newsletters(days_back=7, max_results=50, query=None):
+def fetch_newsletters(days_back=7, max_results=50, query=None, user_email=None):
     """
-    Fetch newsletters from Gmail using OAuth
+    Fetch newsletters from Gmail using service account
     
     Args:
         days_back: Number of days to look back
         max_results: Maximum number of emails to fetch
         query: Gmail search query (e.g., 'from:newsletter@example.com')
+        user_email: Email address to access (required for domain-wide delegation)
     
     Returns:
         List of newsletter dictionaries
     """
     try:
-        service = get_gmail_service()
+        # Get user email from environment if not provided
+        if not user_email:
+            user_email = os.environ.get('GMAIL_USER_EMAIL')
+        
+        if not user_email:
+            raise EnvironmentError(
+                "User email not specified. "
+                "Please set GMAIL_USER_EMAIL in Replit Secrets (e.g., your@workspace.com)"
+            )
+        
+        service = get_gmail_service(user_email=user_email)
         
         # Build query
         date_query = f"after:{(datetime.now() - timedelta(days=days_back)).strftime('%Y/%m/%d')}"
@@ -180,6 +162,6 @@ def fetch_newsletters(days_back=7, max_results=50, query=None):
     except HttpError as error:
         print(f'An error occurred: {error}')
         return []
-    except FileNotFoundError as e:
-        print(f'Setup Error: {e}')
+    except Exception as e:
+        print(f'Error: {e}')
         return []
