@@ -62,7 +62,21 @@ class GmailFetcher:
                 
                 flow = InstalledAppFlow.from_client_secrets_file(
                     self.credentials_path, SCOPES)
-                creds = flow.run_local_server(port=0)
+                
+                try:
+                    creds = flow.run_local_server(port=0)
+                except Exception:
+                    print("\n⚠️  Local server failed. Using manual authorization flow instead.\n")
+                    flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
+                    auth_url, _ = flow.authorization_url(prompt='consent')
+                    
+                    print("Please visit this URL to authorize the application:")
+                    print(auth_url)
+                    print("\nAfter authorization, you'll see an authorization code.")
+                    code = input("Enter the authorization code here: ").strip()
+                    
+                    flow.fetch_token(code=code)
+                    creds = flow.credentials
             
             os.makedirs(os.path.dirname(self.token_path), exist_ok=True)
             with open(self.token_path, 'w') as token:
