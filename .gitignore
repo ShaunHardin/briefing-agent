@@ -32,7 +32,7 @@ htmlcov/
 # Gmail API credentials and tokens
 data/credentials.json
 data/token.json
-*.json
+data/*.json
 
 # IDE
 .vscode/
@@ -54,4 +54,3 @@ Thumbs.db
 
 # UV
 .uv/
-uv.lock

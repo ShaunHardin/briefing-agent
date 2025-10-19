@@ -1,8 +1,23 @@
 # Gmail API Setup Instructions
 
-This guide will help you set up Gmail API access for the Newsletter Digest Agent.
+✅ **Status: OAuth setup is complete and working!**
 
-## Prerequisites
+This document explains how the Gmail API was configured for reference. The OAuth credentials are already in place and the connection is active.
+
+## Current Setup
+
+- OAuth credentials: `data/credentials.json` (gitignored)
+- Access token: `data/token.json` (gitignored, auto-refreshes)
+- Test mode: 7-day token expiry (re-authenticate weekly)
+- Status: ✅ Connected and fetching emails
+
+---
+
+## For Reference: How This Was Set Up
+
+If you need to recreate the OAuth setup or set this up elsewhere:
+
+### Prerequisites
 
 - A Google account
 - Access to Google Cloud Console
@@ -52,30 +67,45 @@ This guide will help you set up Gmail API access for the Newsletter Digest Agent
 
 3. Move it to the `data` directory in your project
 
-## Step 5: Test the Connection
+## Step 5: Authenticate
 
-Run the demo script:
+**Note:** This step has already been completed for this project.
+
+To authenticate (or re-authenticate after 7 days):
+
+1. The OAuth flow requires manual code entry in Replit
+2. You'll receive an authorization code after granting permissions
+3. The token is saved to `data/token.json`
+
+To test the connection:
 
 ```bash
 python demo_gmail_connection.py
 ```
 
-On first run:
-- A browser window will open
-- Sign in with your Google account
-- Grant permissions to read your Gmail
-- The token will be saved for future use
+This will fetch and display your 5 most recent emails.
+
+## Re-Authentication (After 7 Days)
+
+Since the app is in "Testing" mode, tokens expire after 7 days. When you need to re-authenticate:
+
+1. Delete `data/token.json`
+2. Run `python demo_gmail_connection.py`
+3. Follow the OAuth flow again
 
 ## Troubleshooting
 
 **Error: "Credentials file not found"**
 - Make sure `credentials.json` is in the `data/` directory
+- Check that it's not corrupted (valid JSON format)
 
 **Error: "Access blocked: This app's request is invalid"**
 - Make sure you added yourself as a test user in the OAuth consent screen
+- Verify the app is in "Testing" publishing status
 
-**Error: "The user did not consent to the scopes required"**
-- You need to grant permission to read your Gmail
+**Error: "Token has been expired or revoked"**
+- Delete `data/token.json` and re-authenticate
+- This is normal after 7 days in Testing mode
 
 ## Security Notes
 
