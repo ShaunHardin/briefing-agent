@@ -43,6 +43,10 @@ externalPort = 3001
 localPort = 37593
 externalPort = 3000
 
+[[ports]]
+localPort = 41165
+externalPort = 3002
+
 [deployment]
 deploymentTarget = "cloudrun"
 run = ["streamlit", "run", "app.py", "--server.port=5000", "--server.address=0.0.0.0", "--server.headless=true"]
