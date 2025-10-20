@@ -309,5 +309,129 @@ class TestGmailFetcher:
         
         fetcher = GmailFetcher()
         emails = fetcher.fetch_recent_emails(max_results=5)
-        
+
         assert emails == []
+
+    def test_email_has_labels_field(self):
+        """Test that Email dataclass includes labels field"""
+        email = Email(
+            message_id='test123',
+            subject='Test Subject',
+            sender='test@example.com',
+            date='2025-01-01',
+            body='Test body',
+            labels=['INBOX', 'newsletter']
+        )
+
+        assert hasattr(email, 'labels')
+        assert email.labels == ['INBOX', 'newsletter']
+        assert isinstance(email.labels, list)
+
+    @patch('agent.gmail_fetcher.GmailFetcher._authenticate')
+    def test_extracts_labels_from_email(self, mock_auth):
+        """Test that labels are extracted from Gmail API response"""
+        mock_service = Mock()
+        mock_auth.return_value = mock_service
+
+        mock_message_data = {
+            'id': 'msg123',
+            'labelIds': ['INBOX', 'newsletter', 'UNREAD'],
+            'payload': {
+                'headers': [
+                    {'name': 'Subject', 'value': 'Test Newsletter'},
+                    {'name': 'From', 'value': 'sender@example.com'},
+                    {'name': 'Date', 'value': 'Mon, 1 Jan 2025 12:00:00 +0000'}
+                ],
+                'body': {
+                    'data': 'VGVzdCBib2R5IGNvbnRlbnQ='
+                }
+            }
+        }
+
+        mock_messages_list = Mock()
+        mock_messages_list.list().execute.return_value = {
+            'messages': [{'id': 'msg123'}]
+        }
+
+        mock_messages_get = Mock()
+        mock_messages_get.get(userId='me', id='msg123', format='full').execute.return_value = mock_message_data
+
+        mock_messages = Mock()
+        mock_messages.list.return_value = mock_messages_list.list()
+        mock_messages.get.return_value = mock_messages_get.get(userId='me', id='msg123', format='full')
+
+        mock_service.users().messages.return_value = mock_messages
+
+        fetcher = GmailFetcher()
+        emails = fetcher.fetch_recent_emails(max_results=1)
+
+        assert len(emails) == 1
+        assert hasattr(emails[0], 'labels')
+        assert 'newsletter' in emails[0].labels
+        assert 'INBOX' in emails[0].labels
+
+    @patch('agent.gmail_fetcher.GmailFetcher._authenticate')
+    def test_fetch_newsletters_method(self, mock_auth):
+        """Test fetch_newsletters() convenience method uses correct query"""
+        mock_service = Mock()
+        mock_auth.return_value = mock_service
+
+        mock_messages_obj = Mock()
+        list_mock = Mock()
+        list_mock.execute.return_value = {'messages': []}
+        mock_messages_obj.list.return_value = list_mock
+
+        mock_users = Mock()
+        mock_users.messages.return_value = mock_messages_obj
+        mock_service.users.return_value = mock_users
+
+        fetcher = GmailFetcher()
+        emails = fetcher.fetch_newsletters(max_results=10)
+
+        # Verify it calls list with the newsletter label query
+        mock_messages_obj.list.assert_called_once_with(
+            userId='me',
+            maxResults=10,
+            q='label:newsletter'
+        )
+        assert isinstance(emails, list)
+
+    @patch('agent.gmail_fetcher.GmailFetcher._authenticate')
+    def test_email_without_labels(self, mock_auth):
+        """Test handling emails with no labelIds field"""
+        mock_service = Mock()
+        mock_auth.return_value = mock_service
+
+        mock_message_data = {
+            'id': 'msg456',
+            # No labelIds field
+            'payload': {
+                'headers': [
+                    {'name': 'Subject', 'value': 'Email without labels'},
+                    {'name': 'From', 'value': 'test@example.com'},
+                    {'name': 'Date', 'value': 'Mon, 1 Jan 2025 12:00:00 +0000'}
+                ],
+                'body': {'data': 'VGVzdA=='}
+            }
+        }
+
+        mock_messages_list = Mock()
+        mock_messages_list.list().execute.return_value = {
+            'messages': [{'id': 'msg456'}]
+        }
+
+        mock_messages_get = Mock()
+        mock_messages_get.get(userId='me', id='msg456', format='full').execute.return_value = mock_message_data
+
+        mock_messages = Mock()
+        mock_messages.list.return_value = mock_messages_list.list()
+        mock_messages.get.return_value = mock_messages_get.get(userId='me', id='msg456', format='full')
+
+        mock_service.users().messages.return_value = mock_messages
+
+        fetcher = GmailFetcher()
+        emails = fetcher.fetch_recent_emails(max_results=1)
+
+        assert len(emails) == 1
+        assert hasattr(emails[0], 'labels')
+        assert emails[0].labels == []
