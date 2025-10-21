@@ -25,6 +25,12 @@ class Email:
     sender: str
     date: str
     body: str
+    labels: Optional[List[str]] = None
+
+    def __post_init__(self):
+        """Initialize labels to empty list if None"""
+        if self.labels is None:
+            self.labels = []
 
 
 class GmailFetcher:
@@ -119,38 +125,57 @@ class GmailFetcher:
         except HttpError as error:
             print(f'An error occurred: {error}')
             return []
-    
+
+    def fetch_newsletters(self, max_results: int = 10) -> List[Email]:
+        """
+        Fetch emails with 'newsletter' label from Gmail.
+
+        This is a convenience method that filters for emails labeled as newsletters.
+
+        Args:
+            max_results: Maximum number of newsletter emails to fetch
+
+        Returns:
+            List of Email objects with newsletter label
+        """
+        return self.fetch_recent_emails(
+            max_results=max_results,
+            query='label:newsletter'
+        )
+
     def _get_email_details(self, message_id: str) -> Optional[Email]:
         """
         Get detailed information for a specific email.
-        
+
         Args:
             message_id: Gmail message ID
-        
+
         Returns:
             Email object or None if error
         """
         try:
             message = self.service.users().messages().get(
-                userId='me', 
-                id=message_id, 
+                userId='me',
+                id=message_id,
                 format='full'
             ).execute()
-            
+
             headers = message['payload'].get('headers', [])
             subject = self._get_header(headers, 'Subject')
             sender = self._get_header(headers, 'From')
             date = self._get_header(headers, 'Date')
             body = self._get_email_body(message['payload'])
-            
+            labels = message.get('labelIds', [])
+
             return Email(
                 message_id=message_id,
                 subject=subject or '(No Subject)',
                 sender=sender or '(Unknown Sender)',
                 date=date or '(Unknown Date)',
-                body=body or '(No Content)'
+                body=body or '(No Content)',
+                labels=labels
             )
-        
+
         except HttpError as error:
             print(f'Error fetching email {message_id}: {error}')
             return None
