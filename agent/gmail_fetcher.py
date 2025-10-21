@@ -25,7 +25,7 @@ class Email:
     sender: str
     date: str
     body: str
-    labels: List[str] = None
+    labels: Optional[List[str]] = None
 
     def __post_init__(self):
         """Initialize labels to empty list if None"""
